@@ -3,18 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#05060a">
     <title>Minhas Músicas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
     <link rel="stylesheet" href="index.css">
 </head>
 <body>
-    <header>
-        <h1>Minhas Músicas</h1>
-        <a href="cadastrar.html">Cadastrar música</a>
+    <div class="ambiente" aria-hidden="true">
+        <span class="luz luz-1"></span>
+        <span class="luz luz-2"></span>
+        <span class="luz luz-3"></span>
+        <span class="grade"></span>
+    </div>
+
+    <header class="topo">
+        <a class="marca" href="index.html">
+            <span class="marca-icone" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+            <h1>Minhas Músicas</h1>
+        </a>
+        <a class="botao-primario" href="cadastrar.html" aria-label="Cadastrar música">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            <span>Cadastrar música</span>
+        </a>
     </header>
 
     <main>
-        <section id="listaMusicas"></section>
+        <section class="hero" aria-labelledby="heroTitulo">
+            <p class="sobretitulo">Sua biblioteca</p>
+            <p class="hero-titulo" id="heroTitulo">Tudo o que você ouve,<br><span class="gradiente">em um só lugar.</span></p>
+
+            <div class="painel-dados">
+                <div class="estatistica">
+                    <span class="estatistica-valor" id="totalMusicas">0</span>
+                    <span class="estatistica-rotulo">músicas</span>
+                </div>
+                <div class="estatistica">
+                    <span class="estatistica-valor" id="totalGeneros">0</span>
+                    <span class="estatistica-rotulo">gêneros</span>
+                </div>
+                <div class="estatistica">
+                    <span class="estatistica-valor" id="totalMinutos">0</span>
+                    <span class="estatistica-rotulo">minutos de música</span>
+                </div>
+                <div class="grafico">
+                    <p class="grafico-titulo">Distribuição por gênero</p>
+                    <div class="grafico-barra" id="graficoBarra" role="img" aria-label="Distribuição por gênero"></div>
+                    <ul class="grafico-legenda" id="graficoLegenda"></ul>
+                </div>
+            </div>
+        </section>
+
+        <div class="barra-ferramentas">
+            <label class="busca">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                <span class="sr-only">Buscar músicas</span>
+                <input type="search" id="busca" placeholder="Buscar por título, artista ou gênero" autocomplete="off">
+            </label>
+            <p class="contagem" id="contagem" aria-live="polite"></p>
+        </div>
+
+        <section id="listaMusicas" aria-label="Lista de músicas" aria-busy="true"></section>
     </main>
+
+    <div class="toasts" id="toasts"></div>
 
     <script src="index.js"></script>
 </body>

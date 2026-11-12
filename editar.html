@@ -3,42 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editar música</title>
+    <meta name="theme-color" content="#05060a">
+    <title>Editar música · Minhas Músicas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
     <link rel="stylesheet" href="editar.css">
 </head>
 <body>
-    <main>
-        <a class="voltar" href="index.html">Voltar para a lista</a>
+    <div class="ambiente" aria-hidden="true">
+        <span class="luz luz-1"></span>
+        <span class="luz luz-2"></span>
+        <span class="grade"></span>
+    </div>
 
-        <h1>Editar música</h1>
+    <header class="topo">
+        <a class="voltar" href="index.html">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+            Voltar para a lista
+        </a>
+        <span class="marca-mini" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+    </header>
 
-        <div class="campo">
-            <label for="titulo">Título</label>
-            <input type="text" id="titulo">
-        </div>
+    <main class="layout">
+        <section class="painel carregando-dados" id="painel" aria-busy="true">
+            <p class="sobretitulo">Editar faixa</p>
+            <h1>Editar música</h1>
+            <p class="descricao">Altere o que quiser. A prévia mostra o resultado antes de salvar.</p>
 
-        <div class="campo">
-            <label for="artista">Artista</label>
-            <input type="text" id="artista">
-        </div>
+            <div class="campos">
+                <div class="campo campo-largo">
+                    <label for="titulo">Título</label>
+                    <input type="text" id="titulo" autocomplete="off" aria-describedby="erro-titulo">
+                    <span class="erro-campo" id="erro-titulo"></span>
+                </div>
 
-        <div class="campo">
-            <label for="genero">Gênero</label>
-            <input type="text" id="genero">
-        </div>
+                <div class="campo campo-largo">
+                    <label for="artista">Artista</label>
+                    <input type="text" id="artista" autocomplete="off" aria-describedby="erro-artista">
+                    <span class="erro-campo" id="erro-artista"></span>
+                </div>
 
-        <div class="campo">
-            <label for="ano">Ano</label>
-            <input type="number" id="ano">
-        </div>
+                <div class="campo campo-genero">
+                    <label for="genero">Gênero</label>
+                    <input type="text" id="genero" autocomplete="off" aria-describedby="erro-genero">
+                    <span class="erro-campo" id="erro-genero"></span>
+                </div>
 
-        <div class="campo">
-            <label for="duracao">Duração em minutos</label>
-            <input type="number" id="duracao">
-        </div>
+                <div class="campo campo-numero">
+                    <label for="ano">Ano</label>
+                    <input type="number" id="ano" inputmode="numeric" aria-describedby="erro-ano">
+                    <span class="erro-campo" id="erro-ano"></span>
+                </div>
 
-        <button id="botaoSalvar">Salvar alterações</button>
+                <div class="campo campo-numero">
+                    <label for="duracao">Duração em minutos</label>
+                    <div class="com-sufixo">
+                        <input type="number" id="duracao" inputmode="numeric" aria-describedby="erro-duracao">
+                        <span aria-hidden="true">min</span>
+                    </div>
+                    <span class="erro-campo" id="erro-duracao"></span>
+                </div>
+            </div>
+
+            <button class="botao-primario" id="botaoSalvar">
+                <span class="rotulo">Salvar alterações</span>
+                <span class="spinner" aria-hidden="true"></span>
+            </button>
+        </section>
+
+        <aside class="previa" aria-label="Prévia da música">
+            <p class="previa-rotulo">Prévia</p>
+            <div class="previa-cartao" id="previa">
+                <div class="previa-capa">
+                    <span class="previa-iniciais" id="previaIniciais">♪</span>
+                    <span class="previa-ondas"><i></i><i></i><i></i><i></i><i></i></span>
+                </div>
+                <h2 id="previaTitulo" class="vazio">Título da música</h2>
+                <p id="previaArtista" class="previa-artista vazio">Artista</p>
+                <p class="previa-detalhes">
+                    <span class="chip" id="previaGenero">Gênero</span>
+                    <span id="previaAno">Ano</span>
+                    <span id="previaDuracao">— min</span>
+                </p>
+            </div>
+        </aside>
     </main>
+
+    <div class="toasts" id="toasts"></div>
 
     <script src="editar.js"></script>
 </body>
