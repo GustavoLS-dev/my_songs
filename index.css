@@ -628,6 +628,21 @@ main {
     fill: hsl(var(--matiz) 75% 60%);
 }
 
+.fita-capa {
+    animation: aparecer 0.6s ease both;
+}
+
+.fita-capa-sombra {
+    fill: rgba(0, 0, 0, 0.12);
+}
+
+.fita-com-capa .fita-texto {
+    fill: #ffffff;
+    stroke: rgba(0, 0, 0, 0.65);
+    stroke-width: 2px;
+    paint-order: stroke;
+}
+
 .fita-texto {
     fill: hsl(var(--matiz) 45% 22%);
     font-family: var(--fonte);

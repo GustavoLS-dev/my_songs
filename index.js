@@ -17,6 +17,9 @@ const player = document.getElementById("player")
 const audio = new Audio()
 let tocandoId = null
 
+/* Capas dos álbuns já encontradas no iTunes (chave da música -> URL) */
+const capas = new Map()
+
 /* ---------- Utilidades (as demais ficam em itunes.js) ---------- */
 
 function esperarAnimacao(elemento, tempo) {
@@ -167,7 +170,7 @@ function cartaoMusica(musica, posicao) {
     return `
         <article class="musica${estado}" data-id="${Number(musica.id)}" style="--i: ${posicao}; --matiz: ${matizDoGenero(musica.genero)}">
             <button class="capa" aria-label="Tocar prévia de ${escapar(musica.titulo)}">
-                ${fitaSVG()}
+                ${fitaSVG(null, capas.get(chaveDaMusica(musica)) || null)}
                 <span class="capa-acao" aria-hidden="true">
                     <svg class="icone-tocar" viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z"/></svg>
                     <svg class="icone-pausar" viewBox="0 0 24 24"><rect x="6.5" y="5" width="4" height="14" rx="1.2"/><rect x="13.5" y="5" width="4" height="14" rx="1.2"/></svg>
@@ -253,7 +256,41 @@ async function buscarMusicas() {
         renderizarLista()
     } catch {
         mostrarErro()
+        return
     }
+
+    carregarCapas()
+}
+
+/* ---------- Capas dos álbuns (iTunes) ---------- */
+
+function colocarCapaNoCartao(musica) {
+    const capa = capas.get(chaveDaMusica(musica))
+    const cartao = listaMusicas.querySelector(`.musica[data-id="${Number(musica.id)}"]`)
+    const fitaAntiga = cartao?.querySelector(".capa .fita")
+    if (!capa || !fitaAntiga) return
+
+    const progresso = fitaAntiga.style.getPropertyValue("--progresso")
+    fitaAntiga.outerHTML = fitaSVG(null, capa)
+    if (progresso) cartao.querySelector(".capa .fita").style.setProperty("--progresso", progresso)
+}
+
+async function carregarCapas() {
+    const pendentes = musicas.filter((musica) => !capas.has(chaveDaMusica(musica)))
+    let proxima = 0
+
+    async function buscarProximas() {
+        while (proxima < pendentes.length) {
+            const musica = pendentes[proxima++]
+            try {
+                const faixa = await buscarPreviaDaMusica(musica)
+                capas.set(chaveDaMusica(musica), capaDaFaixa(faixa))
+                colocarCapaNoCartao(musica)
+            } catch {}
+        }
+    }
+
+    await Promise.all([buscarProximas(), buscarProximas()])
 }
 
 inputBusca.addEventListener("input", () => renderizarLista(false))
@@ -305,7 +342,7 @@ function atualizarProgresso(atual, total) {
 
 function abrirPlayer(musica) {
     player.style.setProperty("--matiz", matizDoGenero(musica.genero))
-    playerFita.innerHTML = fitaSVG(rotuloDaFita(musica.titulo))
+    playerFita.innerHTML = fitaSVG(rotuloDaFita(musica.titulo), capas.get(chaveDaMusica(musica)) || null)
     playerTitulo.textContent = musica.titulo
     playerArtista.textContent = musica.artista
     playerSpotify.href = `https://open.spotify.com/search/${encodeURIComponent(`${musica.titulo} ${musica.artista}`)}`
@@ -359,6 +396,13 @@ async function tocarMusica(id) {
             fecharPlayer()
             mostrarToast(`Não encontrei a prévia de “${musica.titulo}”.`, "erro")
             return
+        }
+
+        const chave = chaveDaMusica(musica)
+        if (!capas.get(chave) && capaDaFaixa(faixa)) {
+            capas.set(chave, capaDaFaixa(faixa))
+            playerFita.innerHTML = fitaSVG(rotuloDaFita(musica.titulo), capas.get(chave))
+            colocarCapaNoCartao(musica)
         }
 
         audio.src = faixa.previewUrl

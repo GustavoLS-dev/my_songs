@@ -40,7 +40,11 @@ function formatarTempo(segundos) {
 
 /* ---------- Fita cassete ---------- */
 
-function fitaSVG(rotulo = null) {
+let contadorDeFitas = 0
+
+/* rotulo: texto da etiqueta (null = sem texto) · capa: URL da capa do álbum (null = etiqueta lisa) */
+function fitaSVG(rotulo = null, capa = null) {
+    const recorte = `fitaRecorte${++contadorDeFitas}`
     const bobina = (x) => `
         <circle class="fita-rolo fita-rolo-${x < 60 ? "esq" : "dir"}" cx="${x}" cy="35" r="12.5"/>
         <g class="fita-bobina">
@@ -49,10 +53,14 @@ function fitaSVG(rotulo = null) {
         </g>
     `
     return `
-        <svg class="fita" viewBox="0 0 120 78" aria-hidden="true">
+        <svg class="fita${capa ? " fita-com-capa" : ""}" viewBox="0 0 120 78" aria-hidden="true">
+            <defs><clipPath id="${recorte}"><rect x="8" y="6" width="104" height="47" rx="5"/></clipPath></defs>
             <rect class="fita-corpo" x="0.5" y="0.5" width="119" height="77" rx="9"/>
             <rect class="fita-etiqueta" x="8" y="6" width="104" height="47" rx="5"/>
-            <rect class="fita-faixa" x="8" y="43" width="104" height="10"/>
+            ${capa
+                ? `<image class="fita-capa" href="${escapar(capa)}" x="8" y="6" width="104" height="47" preserveAspectRatio="xMidYMid slice" clip-path="url(#${recorte})"/>
+                   <rect class="fita-capa-sombra" x="8" y="6" width="104" height="47" rx="5"/>`
+                : `<rect class="fita-faixa" x="8" y="43" width="104" height="10"/>`}
             ${rotulo !== null ? `<text class="fita-texto" x="14" y="16">${escapar(rotulo)}</text>` : ""}
             <rect class="fita-janela" x="24" y="22" width="72" height="26" rx="13"/>
             ${bobina(42)}
@@ -130,9 +138,53 @@ function escolherFaixa(resultados, musica) {
     return melhor
 }
 
+/* Capa em 300x300 (o iTunes devolve 100x100, mas aceita outros tamanhos na URL) */
+function capaDaFaixa(faixa) {
+    return faixa?.artworkUrl100 ? faixa.artworkUrl100.replace(/\d+x\d+bb/, "300x300bb") : null
+}
+
+/* Guarda no navegador a faixa encontrada para cada música, por 7 dias */
+const chaveDoArmazenamento = "faixasItunes"
+const validadeDoArmazenamento = 7 * 24 * 60 * 60 * 1000
+
+function lerFaixasGuardadas() {
+    try {
+        return JSON.parse(localStorage.getItem(chaveDoArmazenamento)) || {}
+    } catch {
+        return {}
+    }
+}
+
+function guardarFaixa(chave, faixa) {
+    try {
+        const guardadas = lerFaixasGuardadas()
+        guardadas[chave] = {
+            quando: Date.now(),
+            faixa: faixa && {
+                trackName: faixa.trackName,
+                artistName: faixa.artistName,
+                previewUrl: faixa.previewUrl,
+                artworkUrl100: faixa.artworkUrl100,
+                primaryGenreName: faixa.primaryGenreName
+            }
+        }
+        localStorage.setItem(chaveDoArmazenamento, JSON.stringify(guardadas))
+    } catch {}
+}
+
+function chaveDaMusica(musica) {
+    return `${normalizar(musica.titulo)}|${normalizar(musica.artista)}`
+}
+
 async function buscarPreviaDaMusica(musica) {
+    const chave = chaveDaMusica(musica)
+    const guardada = lerFaixasGuardadas()[chave]
+    if (guardada && Date.now() - guardada.quando < validadeDoArmazenamento) return guardada.faixa
+
     const resultados = await pesquisarItunes(`${musica.titulo} ${musica.artista}`)
-    return escolherFaixa(resultados, musica)
+    const faixa = escolherFaixa(resultados, musica)
+    guardarFaixa(chave, faixa)
+    return faixa
 }
 
 /* Converte uma faixa do iTunes nos campos do nosso cadastro */

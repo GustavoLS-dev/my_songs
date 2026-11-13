@@ -63,8 +63,11 @@ const formulario = (() => {
     const previaAno = document.getElementById("previaAno")
     const previaDuracao = document.getElementById("previaDuracao")
 
-    previaFita.innerHTML = fitaSVG("")
-    const etiquetaDaFita = previaFita.querySelector(".fita-texto")
+    function desenharFita(capa) {
+        previaFita.innerHTML = fitaSVG(rotuloDaFita(campoTitulo.value), capa)
+    }
+
+    desenharFita(null)
 
     function preencherTexto(elemento, valor, textoVazio) {
         const texto = String(valor ?? "").trim()
@@ -78,7 +81,7 @@ const formulario = (() => {
         preencherTexto(previaGenero, campoGenero.value, "Gênero")
         previaAno.textContent = campoAno.value || "Ano"
         previaDuracao.textContent = `${campoDuracao.value || "—"} min`
-        etiquetaDaFita.textContent = rotuloDaFita(campoTitulo.value)
+        previaFita.querySelector(".fita-texto").textContent = rotuloDaFita(campoTitulo.value)
         document.documentElement.style.setProperty("--matiz", matizDoGenero(campoGenero.value))
     }
 
@@ -153,6 +156,7 @@ const formulario = (() => {
 
         pararPrevia()
         faixaAtual = faixa
+        desenharFita(capaDaFaixa(faixa))
         previa.classList.remove("buscando-previa")
         previa.classList.toggle("com-previa", Boolean(faixa))
         previaTocar.disabled = !faixa
@@ -222,7 +226,7 @@ const formulario = (() => {
             const dados = dadosDaFaixa(faixa)
             return `
                 <li class="sugestao" id="sugestao-${indice}" role="option" aria-selected="false" data-indice="${indice}" style="--matiz: ${matizDoGenero(faixa.primaryGenreName)}; --i: ${indice}">
-                    <span class="sugestao-fita">${fitaSVG()}</span>
+                    <span class="sugestao-fita">${fitaSVG(null, capaDaFaixa(faixa))}</span>
                     <span class="sugestao-texto">
                         <span class="sugestao-titulo">${escapar(faixa.trackName)}</span>
                         <span class="sugestao-detalhes">${escapar(faixa.artistName)} · ${escapar(dados.ano)} · ${escapar(dados.genero)}</span>
