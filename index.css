@@ -610,6 +610,8 @@ main {
 .fita {
     --progresso: 0;
     overflow: visible;
+    stroke: none;
+    stroke-width: 1;
 }
 
 .fita-corpo {

@@ -29,12 +29,16 @@
         <section class="painel carregando-dados" id="painel" aria-busy="true">
             <p class="sobretitulo">Editar faixa</p>
             <h1>Editar música</h1>
-            <p class="descricao">Altere o que quiser. A prévia mostra o resultado antes de salvar.</p>
+            <p class="descricao">Altere o que quiser. Se mudar o título, o iTunes sugere a música e preenche o resto para você.</p>
 
             <div class="campos">
                 <div class="campo campo-largo">
                     <label for="titulo">Título</label>
-                    <input type="text" id="titulo" autocomplete="off" aria-describedby="erro-titulo">
+                    <div class="busca-itunes">
+                        <input type="text" id="titulo" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sugestoes" aria-describedby="erro-titulo">
+                        <span class="busca-itunes-status" aria-hidden="true"><span class="spinner"></span></span>
+                        <ul class="sugestoes" id="sugestoes" role="listbox" aria-label="Sugestões do iTunes" hidden></ul>
+                    </div>
                     <span class="erro-campo" id="erro-titulo"></span>
                 </div>
 
@@ -75,10 +79,7 @@
         <aside class="previa" aria-label="Prévia da música">
             <p class="previa-rotulo">Prévia</p>
             <div class="previa-cartao" id="previa">
-                <div class="previa-capa">
-                    <span class="previa-iniciais" id="previaIniciais">♪</span>
-                    <span class="previa-ondas"><i></i><i></i><i></i><i></i><i></i></span>
-                </div>
+                <div class="previa-fita" id="previaFita"></div>
                 <h2 id="previaTitulo" class="vazio">Título da música</h2>
                 <p id="previaArtista" class="previa-artista vazio">Artista</p>
                 <p class="previa-detalhes">
@@ -86,12 +87,27 @@
                     <span id="previaAno">Ano</span>
                     <span id="previaDuracao">— min</span>
                 </p>
+
+                <div class="previa-audio">
+                    <button class="previa-tocar" id="previaTocar" aria-label="Ouvir prévia" disabled>
+                        <svg class="icone-tocar" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>
+                        <svg class="icone-pausar" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="5" width="4" height="14" rx="1.2"/><rect x="13.5" y="5" width="4" height="14" rx="1.2"/></svg>
+                        <span class="spinner" aria-hidden="true"></span>
+                    </button>
+                    <div class="previa-audio-info">
+                        <p class="previa-audio-titulo">Prévia do iTunes · 30s</p>
+                        <p class="previa-audio-status" id="previaStatus" aria-live="polite">Carregando música…</p>
+                        <div class="previa-audio-barra"><span id="previaProgresso"></span></div>
+                    </div>
+                </div>
             </div>
         </aside>
     </main>
 
     <div class="toasts" id="toasts"></div>
 
+    <script src="itunes.js"></script>
+    <script src="formulario.js"></script>
     <script src="editar.js"></script>
 </body>
 </html>
