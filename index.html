@@ -13,8 +13,23 @@
 </head>
 <body>
     <div class="intro" id="intro">
-        <div class="intro-conteudo" aria-hidden="true">
-            <div class="intro-logo"><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="intro-cena" aria-hidden="true">
+            <div class="intro-toca-discos">
+                <div class="intro-espectro" id="introEspectro"></div>
+                <span class="intro-onda"></span>
+                <span class="intro-onda"></span>
+                <div class="intro-vinil">
+                    <span class="intro-brilho"></span>
+                    <div class="intro-selo">
+                        <svg viewBox="0 0 100 100">
+                            <defs><path id="introCirculo" d="M50,50 m-33,0 a33,33 0 1,1 66,0 a33,33 0 1,1 -66,0"/></defs>
+                            <text><textPath href="#introCirculo">MINHAS MÚSICAS • LADO A • 33⅓ RPM •</textPath></text>
+                        </svg>
+                        <span class="intro-furo"></span>
+                    </div>
+                </div>
+                <div class="intro-braco"><span class="intro-agulha"></span></div>
+            </div>
             <p class="intro-titulo"><span style="--i: 0">M</span><span style="--i: 1">i</span><span style="--i: 2">n</span><span style="--i: 3">h</span><span style="--i: 4">a</span><span style="--i: 5">s</span><span class="intro-espaco"> </span><span style="--i: 7">M</span><span style="--i: 8">ú</span><span style="--i: 9">s</span><span style="--i: 10">i</span><span style="--i: 11">c</span><span style="--i: 12">a</span><span style="--i: 13">s</span></p>
             <p class="intro-sub">Sua biblioteca, do seu jeito</p>
         </div>
@@ -35,18 +50,26 @@
                 return
             }
 
+            /* 48 barras do espectro circular em volta do disco */
+            var espectro = document.getElementById("introEspectro")
+            var barras = ""
+            for (var i = 0; i < 48; i++) {
+                barras += '<i style="--i: ' + i + '; --a: ' + (0.35 + Math.abs(Math.sin(i * 1.7)) * 0.65).toFixed(2) + '"><b></b></i>'
+            }
+            espectro.innerHTML = barras
+
             function encerrar() {
                 if (!intro.isConnected || intro.classList.contains("saindo")) return
                 intro.classList.add("saindo")
                 document.removeEventListener("keydown", aoTeclar)
-                setTimeout(function () { intro.remove() }, 700)
+                setTimeout(function () { intro.remove() }, 900)
             }
 
             function aoTeclar(evento) {
                 if (evento.key === "Escape" || evento.key === "Enter" || evento.key === " ") encerrar()
             }
 
-            setTimeout(encerrar, 2600)
+            setTimeout(encerrar, 3300)
             document.getElementById("introPular").addEventListener("click", encerrar)
             document.addEventListener("keydown", aoTeclar)
         })()
@@ -72,7 +95,7 @@
     <main>
         <section class="hero" aria-labelledby="heroTitulo">
             <p class="sobretitulo">Sua biblioteca</p>
-            <p class="hero-titulo" id="heroTitulo">Tudo o que você ouve,<br><span class="gradiente">em um só lugar.</span></p>
+            <p class="hero-titulo" id="heroTitulo">Tudo o que você ouve,<br> <span class="gradiente">em um só lugar.</span></p>
 
             <div class="painel-dados">
                 <div class="estatistica">

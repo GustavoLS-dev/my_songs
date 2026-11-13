@@ -185,7 +185,7 @@ function criarFundoReativo(audio, obterMatiz = () => 255) {
         /* Brilho geral que respira com o grave */
         const raio = Math.max(largura, altura) * 0.6
         const brilho = pincel.createRadialGradient(largura / 2, altura * 0.45, 0, largura / 2, altura * 0.45, raio)
-        brilho.addColorStop(0, `hsla(${matiz}, 85%, 55%, ${(0.06 + nivel * 0.16 + pulso * 0.1) * intensidade})`)
+        brilho.addColorStop(0, `hsla(${matiz}, 85%, 55%, ${(0.03 + nivel * 0.08 + pulso * 0.07) * intensidade})`)
         brilho.addColorStop(1, `hsla(${matiz}, 85%, 55%, 0)`)
         pincel.fillStyle = brilho
         pincel.fillRect(0, 0, largura, altura)
@@ -199,15 +199,15 @@ function criarFundoReativo(audio, obterMatiz = () => 255) {
             const suave = 1 - Math.pow(1 - progresso, 3)
             pincel.beginPath()
             pincel.arc(largura / 2, altura * 0.45, 30 + suave * maiorLado * 0.55, 0, Math.PI * 2)
-            pincel.strokeStyle = `hsla(${matiz + 25}, 95%, 70%, ${(1 - progresso) * 0.32 * anel.forca * intensidade})`
+            pincel.strokeStyle = `hsla(${matiz + 25}, 95%, 70%, ${(1 - progresso) * 0.26 * anel.forca * intensidade})`
             pincel.lineWidth = (2 + (1 - progresso) * 10) * (largura / window.innerWidth)
             pincel.stroke()
             return true
         })
 
         /* Ondas do espectro no rodapé */
-        desenharOnda(matiz, 1, 0, 0.42)
-        desenharOnda(matiz + 50, 0.7, altura * 0.01, 0.3)
+        desenharOnda(matiz, 1, 0, 0.34)
+        desenharOnda(matiz + 50, 0.7, altura * 0.01, 0.24)
 
         pincel.globalCompositeOperation = "source-over"
 

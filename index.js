@@ -193,8 +193,14 @@ function cartaoMusica(musica, posicao) {
                 </p>
             </div>
             <div class="acoes">
-                <a class="editar" href="editar.html?id=${Number(musica.id)}">Editar</a>
-                <button class="apagar" onclick="apagarMusica(${Number(musica.id)})">Apagar</button>
+                <a class="editar" href="editar.html?id=${Number(musica.id)}" aria-label="Editar ${escapar(musica.titulo)}">
+                    <svg class="acao-icone" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg>
+                    <span class="acao-texto">Editar</span>
+                </a>
+                <button class="apagar" onclick="apagarMusica(${Number(musica.id)})" aria-label="Apagar ${escapar(musica.titulo)}">
+                    <svg class="acao-icone" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>
+                    <span class="acao-texto">Apagar</span>
+                </button>
             </div>
         </article>
     `

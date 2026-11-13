@@ -128,7 +128,7 @@ svg {
 
 /* Luzes pulsam com o grave da música (--grave vem do batida.js) */
 .luz {
-    scale: calc(1 + var(--grave, 0) * 0.45);
+    scale: calc(1 + var(--grave, 0) * 0.25);
 }
 
 .fundo-batida {
@@ -731,6 +731,17 @@ main {
     transform: scale(0.95);
 }
 
+.editar,
+.apagar {
+    gap: 6px;
+}
+
+.acao-icone {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
 .pergunta {
     font-size: 14px;
     color: var(--texto-2);
@@ -1129,8 +1140,11 @@ body.com-player .toasts {
     bottom: 100px;
 }
 
-/* ============ Intro ============ */
+/* ============ Intro: toca-discos ============
+   0,0s disco entra girando · 0,55s braço desce · 1,15s agulha cai: espectro + ondas
+   1,3s letras caem com quique · 3,3s a tela se fecha em círculo para dentro do disco */
 .intro {
+    --disco: min(62vw, 34vh, 300px);
     position: fixed;
     inset: 0;
     z-index: 100;
@@ -1138,94 +1152,181 @@ body.com-player .toasts {
     place-items: center;
     overflow: hidden;
     background:
-        radial-gradient(circle at 50% 45%, rgba(108, 92, 245, 0.35), transparent 55%),
-        radial-gradient(circle at 70% 70%, rgba(31, 182, 214, 0.18), transparent 50%),
+        radial-gradient(circle at 50% 40%, rgba(108, 92, 245, 0.32), transparent 55%),
+        radial-gradient(circle at 75% 80%, rgba(31, 182, 214, 0.14), transparent 50%),
+        radial-gradient(circle at 20% 85%, rgba(192, 72, 216, 0.14), transparent 50%),
         var(--fundo);
 }
 
-.intro::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background-image:
-        linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-    background-size: 56px 56px;
-    mask-image: radial-gradient(circle at 50% 45%, #000 0%, transparent 60%);
-    -webkit-mask-image: radial-gradient(circle at 50% 45%, #000 0%, transparent 60%);
-    animation: introGrade 2.6s ease-out both;
-}
-
 .intro.saindo {
-    animation: introSair 0.7s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+    animation: introIris 0.9s cubic-bezier(0.76, 0, 0.24, 1) forwards;
     pointer-events: none;
 }
 
-.intro.saindo .intro-conteudo {
-    animation: introConteudoSair 0.5s ease forwards;
-}
-
-.intro-conteudo {
-    position: relative;
+.intro-cena {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 22px;
-    padding: 0 24px;
+    padding: 0 20px;
     text-align: center;
 }
 
-/* Logo: barras de equalizador que crescem e depois dançam */
-.intro-logo {
+.intro-toca-discos {
     position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 9px;
-    width: 120px;
-    height: 120px;
-    border-radius: 34px;
-    background: var(--gradiente-botao);
-    box-shadow:
-        inset 0 2px 0 rgba(255, 255, 255, 0.3),
-        0 30px 80px -20px rgba(108, 92, 245, 0.9);
-    animation: introLogo 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    width: var(--disco);
+    height: var(--disco);
+    margin: calc(var(--disco) * 0.2) 0 calc(var(--disco) * 0.24);
+    animation: tocaPulso 0.46s ease-out 1.15s 4;
 }
 
-.intro-logo::before,
-.intro-logo::after {
-    content: "";
+.intro.saindo .intro-toca-discos {
+    animation: tocaSair 0.9s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+}
+
+/* Disco de vinil */
+.intro-vinil {
     position: absolute;
     inset: 0;
-    border-radius: inherit;
-    border: 2px solid rgba(139, 123, 255, 0.7);
-    animation: introOnda 1.6s ease-out 0.35s both;
+    border-radius: 50%;
+    background: repeating-radial-gradient(circle at 50% 50%, #0b0b10 0, #0b0b10 1.4px, #1f1f29 2.1px, #0b0b10 3px);
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.07),
+        0 40px 90px -20px rgba(0, 0, 0, 0.9),
+        0 0 140px -20px rgba(108, 92, 245, 0.55);
+    animation: vinilEntrar 1s cubic-bezier(0.34, 1.25, 0.64, 1) both;
 }
 
-.intro-logo::after {
-    animation-delay: 0.75s;
+.intro-brilho {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(from 25deg, transparent 0deg, rgba(255, 255, 255, 0.16) 28deg, transparent 58deg, transparent 205deg, rgba(255, 255, 255, 0.1) 228deg, transparent 255deg);
 }
 
-.intro-logo i {
-    width: 10px;
-    height: 54px;
-    border-radius: 6px;
-    background: #ffffff;
-    transform-origin: center;
+.intro-selo {
+    position: absolute;
+    inset: 31%;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--gradiente-botao);
+    box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.18), 0 0 30px rgba(108, 92, 245, 0.6);
+    animation: girar 1.8s linear infinite;
+}
+
+.intro-selo svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: rgba(255, 255, 255, 0.92);
+    stroke: none;
+}
+
+.intro-selo text {
+    font-family: var(--fonte);
+    font-size: 7px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+}
+
+.intro-furo {
+    width: 14%;
+    height: 14%;
+    border-radius: 50%;
+    background: var(--fundo);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 0 2px rgba(255, 255, 255, 0.25);
+}
+
+/* Braço do toca-discos: desce e "solta a agulha" */
+.intro-braco {
+    position: absolute;
+    top: -8%;
+    right: -16%;
+    width: max(6px, 3%);
+    height: 66%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, #8b909c, #eef0f5 45%, #858a96);
+    box-shadow: 6px 10px 18px rgba(0, 0, 0, 0.55);
+    transform-origin: 50% 4%;
+    transform: rotate(-10deg);
+    animation: bracoDescer 0.75s cubic-bezier(0.34, 1.35, 0.64, 1) 0.55s forwards;
+}
+
+.intro-braco::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: calc(var(--disco) * 0.15);
+    height: calc(var(--disco) * 0.15);
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #f6f7fa, #9aa0ad 55%, #5d626d);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+    transform: translate(-50%, -40%);
+}
+
+.intro-agulha {
+    position: absolute;
+    bottom: -5%;
+    left: 50%;
+    width: calc(var(--disco) * 0.075);
+    height: calc(var(--disco) * 0.11);
+    border-radius: 4px;
+    background: linear-gradient(#e6e9ef, #8f949f);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+    transform: translateX(-50%) rotate(20deg);
+}
+
+/* Espectro circular: aparece quando a agulha cai */
+.intro-espectro {
+    position: absolute;
+    inset: -17%;
+    opacity: 0;
     animation:
-        introBarra 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both,
-        equalizar 0.9s ease-in-out 0.8s infinite;
+        aparecer 0.25s ease 1.15s forwards,
+        girar 16s linear infinite;
 }
 
-.intro-logo i:nth-child(1) { animation-delay: 0.15s, 0.8s; }
-.intro-logo i:nth-child(2) { animation-delay: 0.22s, 0.6s; }
-.intro-logo i:nth-child(3) { animation-delay: 0.29s, 0.9s; }
-.intro-logo i:nth-child(4) { animation-delay: 0.36s, 0.7s; }
-.intro-logo i:nth-child(5) { animation-delay: 0.43s, 1s; }
+.intro-espectro i {
+    position: absolute;
+    inset: 0;
+    transform: rotate(calc(var(--i) * 7.5deg));
+}
 
-/* Título letra por letra */
+.intro-espectro b {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: max(3px, 2.2%);
+    height: 11%;
+    border-radius: 99px;
+    background: linear-gradient(to top, hsl(calc(250 + var(--i) * 4) 90% 66%), hsl(calc(190 + var(--i) * 4) 95% 72%));
+    box-shadow: 0 0 10px hsl(calc(250 + var(--i) * 4) 90% 60% / 0.7);
+    transform: translateX(-50%) scaleY(0.15);
+    transform-origin: 50% 100%;
+    animation: espectroDancar 0.42s ease-in-out infinite alternate;
+    animation-delay: calc(var(--i) * -71ms);
+}
+
+/* Ondas de choque quando a agulha cai */
+.intro-onda {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid rgba(139, 123, 255, 0.75);
+    opacity: 0;
+    animation: ondaChoque 1.5s ease-out 1.15s forwards;
+}
+
+.intro-onda + .intro-onda {
+    border-color: rgba(62, 224, 255, 0.6);
+    animation-delay: 1.5s;
+}
+
+/* Título: letras caem com quique */
 .intro-titulo {
-    font-size: clamp(40px, 8vw, 84px);
+    font-size: clamp(34px, 9vw, 78px);
     font-weight: 800;
     letter-spacing: -0.045em;
     line-height: 1.05;
@@ -1234,8 +1335,8 @@ body.com-player .toasts {
 
 .intro-titulo span {
     display: inline-block;
-    animation: introLetra 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
-    animation-delay: calc(0.55s + var(--i) * 45ms);
+    animation: letraCair 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    animation-delay: calc(1.3s + var(--i) * 55ms);
 }
 
 .intro-titulo span:nth-child(n + 8) {
@@ -1250,16 +1351,24 @@ body.com-player .toasts {
 }
 
 .intro-sub {
+    margin-top: 14px;
     font-size: clamp(15px, 2vw, 19px);
     color: var(--texto-2);
     letter-spacing: 0.02em;
-    animation: subir 0.8s var(--curva) 1.35s both;
+    animation: subir 0.8s var(--curva) 2.15s both;
+}
+
+.intro.saindo .intro-titulo,
+.intro.saindo .intro-sub,
+.intro.saindo .intro-pular {
+    transition: opacity 0.3s ease;
+    opacity: 0;
 }
 
 .intro-pular {
     position: absolute;
-    right: 24px;
-    bottom: 24px;
+    right: 20px;
+    bottom: max(20px, env(safe-area-inset-bottom));
     height: 38px;
     padding: 0 16px;
     border: 1px solid var(--borda);
@@ -1357,37 +1466,45 @@ body:has(> .intro) :is(.topo, .hero, .estatistica, .grafico, .grafico-segmento, 
     to { opacity: 1; }
 }
 
-@keyframes introLogo {
-    from { opacity: 0; transform: scale(0.4) rotate(-12deg); }
+@keyframes vinilEntrar {
+    from { opacity: 0; transform: scale(0.25) rotate(-220deg); }
     to { opacity: 1; transform: scale(1) rotate(0); }
 }
 
-@keyframes introBarra {
-    from { transform: scaleY(0); }
-    to { transform: scaleY(0.6); }
+@keyframes bracoDescer {
+    from { transform: rotate(-10deg); }
+    to { transform: rotate(30deg); }
 }
 
-@keyframes introOnda {
-    from { opacity: 0.9; transform: scale(1); }
-    to { opacity: 0; transform: scale(2.6); }
+@keyframes tocaPulso {
+    0% { transform: scale(1); }
+    25% { transform: scale(1.045); }
+    100% { transform: scale(1); }
 }
 
-@keyframes introLetra {
-    from { opacity: 0; transform: translateY(0.6em) rotate(6deg); filter: blur(8px); }
-    to { opacity: 1; transform: translateY(0) rotate(0); filter: blur(0); }
+@keyframes espectroDancar {
+    from { transform: translateX(-50%) scaleY(0.15); }
+    to { transform: translateX(-50%) scaleY(var(--a)); }
 }
 
-@keyframes introGrade {
-    from { opacity: 0; transform: scale(1.15); }
-    to { opacity: 1; transform: scale(1); }
+@keyframes ondaChoque {
+    0% { opacity: 0.9; transform: scale(1); }
+    100% { opacity: 0; transform: scale(2.3); }
 }
 
-@keyframes introConteudoSair {
-    to { opacity: 0; transform: translateY(-40px) scale(0.96); }
+@keyframes letraCair {
+    0% { opacity: 0; transform: translateY(-140%) rotate(-12deg); }
+    50% { opacity: 1; }
+    100% { opacity: 1; transform: translateY(0) rotate(0); }
 }
 
-@keyframes introSair {
-    to { clip-path: inset(0 0 100% 0); }
+@keyframes tocaSair {
+    to { transform: scale(1.3) rotate(25deg); }
+}
+
+@keyframes introIris {
+    from { clip-path: circle(150% at 50% 40%); }
+    to { clip-path: circle(0% at 50% 40%); }
 }
 
 @keyframes tocadorSurgir {
@@ -1451,50 +1568,99 @@ body:has(> .intro) :is(.topo, .hero, .estatistica, .grafico, .grafico-segmento, 
 /* ============ Responsivo ============ */
 @media (max-width: 720px) {
     .hero {
-        padding-top: 48px;
+        padding-top: 44px;
+    }
+
+    .hero-titulo {
+        font-size: clamp(32px, 9vw, 52px);
+    }
+
+    .hero-titulo br {
+        display: none;
     }
 
     .painel-dados {
         gap: 8px;
-        margin-top: 32px;
+        margin-top: 28px;
     }
 
     .estatistica,
     .grafico {
-        padding: 16px;
+        padding: 14px 16px;
     }
 
     .barra-ferramentas {
         flex-direction: column;
         align-items: stretch;
-        margin-top: 36px;
+        gap: 10px;
+        margin-top: 32px;
     }
 
     .busca {
         width: 100%;
     }
 
+    /* Card compacto: aparelho | textos | ícones empilhados */
     .musica {
-        grid-template-columns: 50px minmax(0, 1fr);
-        gap: 14px;
+        grid-template-columns: 50px minmax(0, 1fr) 40px;
+        gap: 12px;
+        padding: 12px;
+        border-radius: 20px;
+    }
+
+    .musica h2 {
+        font-size: 16px;
+    }
+
+    .artista {
+        font-size: 14px;
+    }
+
+    .detalhes {
+        margin-top: 6px;
+        gap: 4px 10px;
     }
 
     .acoes {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .acoes .editar,
+    .acoes .apagar {
+        width: 40px;
+        height: 37px;
+        padding: 0;
+    }
+
+    .acao-icone {
+        width: 18px;
+        height: 18px;
+    }
+
+    .acao-texto {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+
+    /* Confirmação de apagar ocupa a largura toda do card */
+    .musica.confirmando .acoes {
         grid-column: 1 / -1;
+        flex-direction: row;
+        flex-wrap: wrap;
         justify-content: stretch;
     }
 
-    .acoes > a,
-    .acoes > button {
+    .musica.confirmando .acoes > button {
         flex: 1;
     }
 
     .pergunta {
         flex-basis: 100%;
-    }
-
-    .musica.confirmando .acoes {
-        flex-wrap: wrap;
     }
 }
 
@@ -1518,27 +1684,50 @@ body:has(> .intro) :is(.topo, .hero, .estatistica, .grafico, .grafico-segmento, 
     }
 
     .marca h1 {
-        font-size: 15px;
+        font-size: 16px;
     }
 
-    .botao-primario {
-        padding: 0 14px 0 12px;
-        font-size: 14px;
+    /* Botão de cadastrar vira um "+" redondo para não encostar no nome */
+    .topo .botao-primario {
+        width: 42px;
+        padding: 0;
+    }
+
+    .topo .botao-primario span {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+
+    .topo .botao-primario svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .estatistica-valor {
+        font-size: 28px;
     }
 
     .estatistica-rotulo {
         font-size: 12px;
     }
+
+    .grafico-legenda {
+        gap: 6px 14px;
+        font-size: 12.5px;
+    }
 }
 
 @media (max-width: 380px) {
-    .topo .botao-primario span {
-        display: none;
+    .marca h1 {
+        font-size: 15px;
     }
 
-    .topo .botao-primario {
-        width: 42px;
-        padding: 0;
+    .estatistica {
+        padding: 12px;
     }
 }
 
