@@ -68,6 +68,9 @@ const formulario = (() => {
     const audio = new Audio()
     let faixaAtual = null
 
+    /* Fundo que pulsa com a batida, na cor do gênero digitado */
+    const fundoReativo = criarFundoReativo(audio, () => matizDoGenero(campoGenero.value))
+
     const aparelho = criarIpod(previaAparelho, {
         tocar: alternarPrevia,
         menu: pararPrevia,
@@ -163,6 +166,7 @@ const formulario = (() => {
             return
         }
 
+        fundoReativo.ligar()
         if (audio.src !== faixaAtual.previewUrl) audio.src = faixaAtual.previewUrl
         if (audio.ended) audio.currentTime = 0
         audio.play().catch(() => mostrarToast("Não foi possível tocar a prévia.", "erro"))

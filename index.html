@@ -12,6 +12,45 @@
     <link rel="stylesheet" href="index.css">
 </head>
 <body>
+    <div class="intro" id="intro">
+        <div class="intro-conteudo" aria-hidden="true">
+            <div class="intro-logo"><i></i><i></i><i></i><i></i><i></i></div>
+            <p class="intro-titulo"><span style="--i: 0">M</span><span style="--i: 1">i</span><span style="--i: 2">n</span><span style="--i: 3">h</span><span style="--i: 4">a</span><span style="--i: 5">s</span><span class="intro-espaco"> </span><span style="--i: 7">M</span><span style="--i: 8">ú</span><span style="--i: 9">s</span><span style="--i: 10">i</span><span style="--i: 11">c</span><span style="--i: 12">a</span><span style="--i: 13">s</span></p>
+            <p class="intro-sub">Sua biblioteca, do seu jeito</p>
+        </div>
+        <button class="intro-pular" id="introPular">Pular introdução</button>
+    </div>
+    <script>
+        /* Intro: só uma vez por sessão e nunca para quem prefere menos movimento */
+        (function () {
+            var intro = document.getElementById("intro")
+            var jaViu = false
+            try {
+                jaViu = sessionStorage.getItem("introVista") === "1"
+                sessionStorage.setItem("introVista", "1")
+            } catch (erro) {}
+
+            if (jaViu || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+                intro.remove()
+                return
+            }
+
+            function encerrar() {
+                if (!intro.isConnected || intro.classList.contains("saindo")) return
+                intro.classList.add("saindo")
+                document.removeEventListener("keydown", aoTeclar)
+                setTimeout(function () { intro.remove() }, 700)
+            }
+
+            function aoTeclar(evento) {
+                if (evento.key === "Escape" || evento.key === "Enter" || evento.key === " ") encerrar()
+            }
+
+            setTimeout(encerrar, 2600)
+            document.getElementById("introPular").addEventListener("click", encerrar)
+            document.addEventListener("keydown", aoTeclar)
+        })()
+    </script>
     <div class="ambiente" aria-hidden="true">
         <span class="luz luz-1"></span>
         <span class="luz luz-2"></span>
@@ -105,6 +144,7 @@
 
     <script src="itunes.js"></script>
     <script src="ipod.js"></script>
+    <script src="batida.js"></script>
     <script src="index.js"></script>
 </body>
 </html>

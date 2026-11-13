@@ -17,6 +17,12 @@ let buscandoPrevia = false
 const audio = new Audio()
 let tocandoId = null
 
+/* Fundo que pulsa com a batida, na cor do gênero da música que está tocando */
+const fundoReativo = criarFundoReativo(audio, () => {
+    const musica = musicas.find((item) => Number(item.id) === tocandoId)
+    return musica ? matizDoGenero(musica.genero) : 255
+})
+
 /* Capas dos álbuns já encontradas no iTunes (chave da música -> URL) */
 const capas = new Map()
 
@@ -448,6 +454,7 @@ function pararTudo() {
 
 function alternarTocar() {
     if (!tocandoId || buscandoPrevia) return
+    fundoReativo.ligar()
     if (audio.ended) audio.currentTime = 0
 
     if (audio.paused) {
@@ -481,6 +488,7 @@ async function tocarMusica(id, { abrir = true } = {}) {
     const musica = musicas.find((item) => Number(item.id) === id)
     if (!musica) return
 
+    fundoReativo.ligar()
     const pedido = ++pedidoAtual
     const trocou = tocandoId !== null
 
