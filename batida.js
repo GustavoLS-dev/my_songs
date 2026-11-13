@@ -44,13 +44,23 @@ function criarFundoReativo(audio, obterMatiz = () => 255) {
     }
 
     /* Liga a análise. Chame dentro de um clique (os navegadores exigem um gesto para o áudio) */
+    const ehIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+
     function ligar() {
         if (reduzirMovimento) return
+
+        /* iOS antigo (sem audioSession) silenciaria a prévia no modo silencioso: melhor sem efeito do que sem som */
+        if (ehIOS && !navigator.audioSession) return
 
         try {
             if (!contexto) {
                 const Contexto = window.AudioContext || window.webkitAudioContext
                 if (!Contexto) return
+
+                /* iPhone: sem isso, o som que passa pela análise fica mudo no modo silencioso (iOS 17+) */
+                try {
+                    if (navigator.audioSession) navigator.audioSession.type = "playback"
+                } catch {}
 
                 contexto = new Contexto()
                 const fonte = contexto.createMediaElementSource(audio)

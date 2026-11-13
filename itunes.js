@@ -42,16 +42,29 @@ function formatarTempo(segundos) {
 
 const resultadosItunes = new Map()
 
+/* A busca passa pelo nosso backend: no iPhone, a API do iTunes redireciona para o app Música
+   em vez de responder. Se o backend falhar, tenta direto no iTunes (funciona no PC e no Android). */
+const buscaPeloBackend = "https://backend-songs.vercel.app/itunes"
+
+async function lerResultados(endereco) {
+    const resposta = await buscarComTempo(endereco)
+    if (!resposta.ok) throw new Error("Resposta inválida")
+    const dados = await resposta.json()
+    return (dados.results || []).filter((faixa) => faixa.previewUrl)
+}
+
 async function pesquisarItunes(termo) {
     const chave = normalizar(termo).replace(/\s+/g, " ")
     if (!chave) return []
     if (resultadosItunes.has(chave)) return resultadosItunes.get(chave)
 
-    const resposta = await buscarComTempo(`https://itunes.apple.com/search?term=${encodeURIComponent(termo)}&media=music&entity=song&limit=15&country=BR`)
-    if (!resposta.ok) throw new Error("Resposta inválida")
+    let faixas
+    try {
+        faixas = await lerResultados(`${buscaPeloBackend}?termo=${encodeURIComponent(termo)}`)
+    } catch {
+        faixas = await lerResultados(`https://itunes.apple.com/search?term=${encodeURIComponent(termo)}&media=music&entity=song&limit=15&country=BR`)
+    }
 
-    const dados = await resposta.json()
-    const faixas = (dados.results || []).filter((faixa) => faixa.previewUrl)
     resultadosItunes.set(chave, faixas)
     return faixas
 }
