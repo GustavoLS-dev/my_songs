@@ -53,36 +53,45 @@ const formulario = (() => {
 
     window.addEventListener("pageshow", () => document.body.classList.remove("saindo"))
 
-    /* ---------- Prévia do cartão ---------- */
+    /* ---------- Prévia: o aparelho ---------- */
 
     const previa = document.getElementById("previa")
-    const previaFita = document.getElementById("previaFita")
-    const previaTitulo = document.getElementById("previaTitulo")
-    const previaArtista = document.getElementById("previaArtista")
-    const previaGenero = document.getElementById("previaGenero")
-    const previaAno = document.getElementById("previaAno")
-    const previaDuracao = document.getElementById("previaDuracao")
+    const previaAparelho = document.getElementById("previaAparelho")
+    const previaStatus = document.getElementById("previaStatus")
 
-    function desenharFita(capa) {
-        previaFita.innerHTML = fitaSVG(rotuloDaFita(campoTitulo.value), capa)
-    }
+    previaAparelho.innerHTML = ipodGrandeHTML({
+        rotuloMenu: "Parar a prévia",
+        rotuloAnterior: "Voltar 5 segundos",
+        rotuloProxima: "Avançar 5 segundos"
+    })
 
-    desenharFita(null)
+    const audio = new Audio()
+    let faixaAtual = null
 
-    function preencherTexto(elemento, valor, textoVazio) {
-        const texto = String(valor ?? "").trim()
-        elemento.textContent = texto || textoVazio
-        elemento.classList.toggle("vazio", !texto)
+    const aparelho = criarIpod(previaAparelho, {
+        tocar: alternarPrevia,
+        menu: pararPrevia,
+        anterior: () => avancar(-5),
+        proxima: () => avancar(5),
+        girar: (graus) => avancar((graus / 360) * 15)
+    })
+
+    function detalhesDosCampos() {
+        return [campoGenero.value.trim(), campoAno.value, campoDuracao.value ? `${campoDuracao.value} min` : ""]
+            .filter(Boolean)
+            .join(" · ")
     }
 
     function atualizarPrevia() {
-        preencherTexto(previaTitulo, campoTitulo.value, "Título da música")
-        preencherTexto(previaArtista, campoArtista.value, "Artista")
-        preencherTexto(previaGenero, campoGenero.value, "Gênero")
-        previaAno.textContent = campoAno.value || "Ano"
-        previaDuracao.textContent = `${campoDuracao.value || "—"} min`
-        previaFita.querySelector(".fita-texto").textContent = rotuloDaFita(campoTitulo.value)
-        document.documentElement.style.setProperty("--matiz", matizDoGenero(campoGenero.value))
+        const matiz = matizDoGenero(campoGenero.value)
+        aparelho.mostrar({
+            titulo: campoTitulo.value,
+            artista: campoArtista.value,
+            detalhes: detalhesDosCampos(),
+            capa: capaDaFaixa(faixaAtual),
+            matiz
+        })
+        document.documentElement.style.setProperty("--matiz", matiz)
     }
 
     /* ---------- Validação ---------- */
@@ -123,47 +132,30 @@ const formulario = (() => {
 
     /* ---------- Prévia de áudio (iTunes) ---------- */
 
-    const previaTocar = document.getElementById("previaTocar")
-    const previaStatus = document.getElementById("previaStatus")
-    const previaProgresso = document.getElementById("previaProgresso")
-    const audio = new Audio()
-    let faixaAtual = null
-
-    function mostrarProgresso(fracao) {
-        previaFita.querySelector(".fita").style.setProperty("--progresso", fracao)
-        previaProgresso.style.width = `${fracao * 100}%`
-    }
-
-    function atualizarBotaoAudio() {
+    function atualizarEstadoAudio() {
         const tocando = Boolean(faixaAtual) && !audio.paused
+        aparelho.tocando(tocando)
         previa.classList.toggle("tocando", tocando)
-        previaTocar.setAttribute("aria-label", tocando ? "Pausar prévia" : "Ouvir prévia")
-    }
 
-    function pararPrevia() {
-        audio.pause()
-        audio.removeAttribute("src")
-        audio.load()
-        mostrarProgresso(0)
-        atualizarBotaoAudio()
-    }
-
-    function definirFaixa(faixa, mensagem) {
-        if (faixa && faixaAtual && faixa.previewUrl === faixaAtual.previewUrl) {
-            previa.classList.remove("buscando-previa")
-            return
+        if (faixaAtual) {
+            aparelho.estado(audio.ended ? "Prévia terminada" : tocando ? "Tocando agora" : "Prévia pronta")
+        } else if (!aparelho.elemento.classList.contains("buscando")) {
+            aparelho.estado("Sem prévia")
         }
-
-        pararPrevia()
-        faixaAtual = faixa
-        desenharFita(capaDaFaixa(faixa))
-        previa.classList.remove("buscando-previa")
-        previa.classList.toggle("com-previa", Boolean(faixa))
-        previaTocar.disabled = !faixa
-        previaStatus.textContent = faixa ? `${faixa.trackName} — ${faixa.artistName}` : mensagem
     }
 
-    previaTocar.addEventListener("click", () => {
+    function mostrarProgresso() {
+        const total = Number.isFinite(audio.duration) ? audio.duration : 30
+        aparelho.progresso(audio.currentTime || 0, total)
+    }
+
+    function avancar(segundos) {
+        if (!faixaAtual || !Number.isFinite(audio.duration)) return
+        audio.currentTime = Math.min(Math.max(audio.currentTime + segundos, 0), audio.duration)
+        mostrarProgresso()
+    }
+
+    function alternarPrevia() {
         if (!faixaAtual) return
 
         if (!audio.paused) {
@@ -174,17 +166,35 @@ const formulario = (() => {
         if (audio.src !== faixaAtual.previewUrl) audio.src = faixaAtual.previewUrl
         if (audio.ended) audio.currentTime = 0
         audio.play().catch(() => mostrarToast("Não foi possível tocar a prévia.", "erro"))
-    })
+    }
 
-    audio.addEventListener("play", atualizarBotaoAudio)
-    audio.addEventListener("pause", atualizarBotaoAudio)
-    audio.addEventListener("ended", () => {
-        atualizarBotaoAudio()
-        mostrarProgresso(0)
-    })
-    audio.addEventListener("timeupdate", () => {
-        if (audio.duration) mostrarProgresso(Math.min(audio.currentTime / audio.duration, 1))
-    })
+    function pararPrevia() {
+        audio.pause()
+        audio.removeAttribute("src")
+        audio.load()
+        aparelho.progresso(0, 30)
+        atualizarEstadoAudio()
+    }
+
+    function definirFaixa(faixa, mensagem) {
+        aparelho.buscando(false)
+
+        if (faixa && faixaAtual && faixa.previewUrl === faixaAtual.previewUrl) {
+            atualizarEstadoAudio()
+            return
+        }
+
+        faixaAtual = faixa
+        pararPrevia()
+        aparelho.capa(capaDaFaixa(faixa))
+        previa.classList.toggle("com-previa", Boolean(faixa))
+        previaStatus.textContent = faixa ? `${faixa.trackName} — ${faixa.artistName}` : mensagem
+    }
+
+    audio.addEventListener("play", atualizarEstadoAudio)
+    audio.addEventListener("pause", atualizarEstadoAudio)
+    audio.addEventListener("ended", atualizarEstadoAudio)
+    audio.addEventListener("timeupdate", mostrarProgresso)
 
     /* ---------- Sugestões do iTunes ---------- */
 
@@ -226,7 +236,7 @@ const formulario = (() => {
             const dados = dadosDaFaixa(faixa)
             return `
                 <li class="sugestao" id="sugestao-${indice}" role="option" aria-selected="false" data-indice="${indice}" style="--matiz: ${matizDoGenero(faixa.primaryGenreName)}; --i: ${indice}">
-                    <span class="sugestao-fita">${fitaSVG(null, capaDaFaixa(faixa))}</span>
+                    <span class="sugestao-capa" style="${estiloDaCapa(capaDaFaixa(faixa))}" aria-hidden="true"></span>
                     <span class="sugestao-texto">
                         <span class="sugestao-titulo">${escapar(faixa.trackName)}</span>
                         <span class="sugestao-detalhes">${escapar(faixa.artistName)} · ${escapar(dados.ano)} · ${escapar(dados.genero)}</span>
@@ -274,8 +284,11 @@ const formulario = (() => {
         const pedido = ++pedidoAtual
 
         statusBusca.classList.add("buscando")
-        previa.classList.add("buscando-previa")
-        if (!faixaAtual) previaStatus.textContent = "Procurando no iTunes…"
+        if (!faixaAtual) {
+            aparelho.buscando(true)
+            aparelho.estado("Procurando…")
+            previaStatus.textContent = "Procurando no iTunes…"
+        }
 
         try {
             const resultados = await pesquisarItunes(`${titulo} ${artista}`)
@@ -360,6 +373,7 @@ const formulario = (() => {
     })
 
     atualizarPrevia()
+    atualizarEstadoAudio()
 
     return {
         reduzirMovimento,

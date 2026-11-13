@@ -1,4 +1,4 @@
-/* Funções compartilhadas pelas três páginas: texto, cores, fita cassete e busca no iTunes */
+/* Funções compartilhadas pelas três páginas: texto, cores e busca no iTunes */
 
 function escapar(texto) {
     return String(texto ?? "")
@@ -36,45 +36,6 @@ function formatarTempo(segundos) {
     if (!Number.isFinite(segundos)) return "0:00"
     const total = Math.floor(segundos)
     return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`
-}
-
-/* ---------- Fita cassete ---------- */
-
-let contadorDeFitas = 0
-
-/* rotulo: texto da etiqueta (null = sem texto) · capa: URL da capa do álbum (null = etiqueta lisa) */
-function fitaSVG(rotulo = null, capa = null) {
-    const recorte = `fitaRecorte${++contadorDeFitas}`
-    const bobina = (x) => `
-        <circle class="fita-rolo fita-rolo-${x < 60 ? "esq" : "dir"}" cx="${x}" cy="35" r="12.5"/>
-        <g class="fita-bobina">
-            <circle class="fita-cubo" cx="${x}" cy="35" r="5.5"/>
-            <path class="fita-raio" d="M${x} 31.4v7.2M${x - 3.1} 33.2l6.2 3.6M${x - 3.1} 36.8l6.2-3.6"/>
-        </g>
-    `
-    return `
-        <svg class="fita${capa ? " fita-com-capa" : ""}" viewBox="0 0 120 78" aria-hidden="true">
-            <defs><clipPath id="${recorte}"><rect x="8" y="6" width="104" height="47" rx="5"/></clipPath></defs>
-            <rect class="fita-corpo" x="0.5" y="0.5" width="119" height="77" rx="9"/>
-            <rect class="fita-etiqueta" x="8" y="6" width="104" height="47" rx="5"/>
-            ${capa
-                ? `<image class="fita-capa" href="${escapar(capa)}" x="8" y="6" width="104" height="47" preserveAspectRatio="xMidYMid slice" clip-path="url(#${recorte})"/>
-                   <rect class="fita-capa-sombra" x="8" y="6" width="104" height="47" rx="5"/>`
-                : `<rect class="fita-faixa" x="8" y="43" width="104" height="10"/>`}
-            ${rotulo !== null ? `<text class="fita-texto" x="14" y="16">${escapar(rotulo)}</text>` : ""}
-            <rect class="fita-janela" x="24" y="22" width="72" height="26" rx="13"/>
-            ${bobina(42)}
-            ${bobina(78)}
-            <path class="fita-base" d="M26 77.5 31 62h58l5 15.5z"/>
-            <circle class="fita-furo" cx="40" cy="70" r="2.4"/>
-            <circle class="fita-furo" cx="80" cy="70" r="2.4"/>
-        </svg>
-    `
-}
-
-function rotuloDaFita(titulo) {
-    const texto = String(titulo ?? "").trim()
-    return texto.length > 24 ? texto.slice(0, 23) + "…" : texto
 }
 
 /* ---------- iTunes ---------- */
@@ -176,10 +137,17 @@ function chaveDaMusica(musica) {
     return `${normalizar(musica.titulo)}|${normalizar(musica.artista)}`
 }
 
+/* Faixa já guardada (sem esperar a internet). undefined = ainda não foi buscada */
+function faixaGuardada(musica) {
+    const guardada = lerFaixasGuardadas()[chaveDaMusica(musica)]
+    if (guardada && Date.now() - guardada.quando < validadeDoArmazenamento) return guardada.faixa
+    return undefined
+}
+
 async function buscarPreviaDaMusica(musica) {
     const chave = chaveDaMusica(musica)
-    const guardada = lerFaixasGuardadas()[chave]
-    if (guardada && Date.now() - guardada.quando < validadeDoArmazenamento) return guardada.faixa
+    const guardada = faixaGuardada(musica)
+    if (guardada !== undefined) return guardada
 
     const resultados = await pesquisarItunes(`${musica.titulo} ${musica.artista}`)
     const faixa = escolherFaixa(resultados, musica)

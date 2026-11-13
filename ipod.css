@@ -1,0 +1,520 @@
+/* ============================================================
+   Tocador portátil (tela + roda de clique) usado nas três páginas
+   O tamanho do aparelho grande é controlado pelo font-size (tudo em em)
+   ============================================================ */
+
+.ipod {
+    --corpo-claro: hsl(var(--matiz) 40% 88%);
+    --corpo-medio: hsl(var(--matiz) 32% 74%);
+    --corpo-escuro: hsl(var(--matiz) 30% 60%);
+    --destaque-ipod: hsl(var(--matiz) 85% 58%);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: linear-gradient(155deg, var(--corpo-claro) 0%, var(--corpo-medio) 55%, var(--corpo-escuro) 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.85),
+        inset 0 -3px 8px rgba(0, 0, 0, 0.18),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+    transition: --matiz 0.8s ease;
+}
+
+.ipod svg {
+    fill: currentColor;
+    stroke: none;
+}
+
+/* ---------- Tela ---------- */
+.ipod-tela {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    background: linear-gradient(180deg, #1b1c26 0%, #0c0d12 100%);
+    border: solid #0a0a0e;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06), 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.ipod-tela::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, transparent 38%);
+    pointer-events: none;
+}
+
+.ipod-capa {
+    position: relative;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background-color: hsl(var(--matiz) 55% 42%);
+    background-image: linear-gradient(135deg, hsl(var(--matiz) 70% 58%), hsl(calc(var(--matiz) + 40) 60% 35%));
+    background-size: cover;
+    background-position: center;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.ipod-capa.com-capa {
+    animation: aparecerCapa 0.5s ease both;
+}
+
+.ipod-capa.com-capa .ipod-nota {
+    display: none;
+}
+
+.ipod-nota {
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* Barrinhas de equalizador sobre a capa enquanto toca */
+.ipod-ondas {
+    position: absolute;
+    left: 50%;
+    bottom: 10%;
+    display: flex;
+    align-items: flex-end;
+    gap: 8%;
+    width: 46%;
+    height: 34%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.ipod-ondas i {
+    flex: 1;
+    height: 100%;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.35);
+    transform-origin: bottom;
+    transform: scaleY(0.3);
+}
+
+.ipod.tocando .ipod-ondas {
+    opacity: 1;
+}
+
+.ipod.tocando .ipod-ondas i {
+    animation: ipodEqualizar 0.9s ease-in-out infinite;
+}
+
+.ipod.tocando .ipod-ondas i:nth-child(2) { animation-delay: -0.3s; }
+.ipod.tocando .ipod-ondas i:nth-child(3) { animation-delay: -0.6s; }
+
+/* ---------- Roda de clique ---------- */
+.ipod-roda {
+    position: relative;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 35%, #ffffff 0%, #f0f0f4 55%, #dcdce3 100%);
+    box-shadow:
+        inset 0 2px 5px rgba(0, 0, 0, 0.14),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.9),
+        0 1px 0 rgba(255, 255, 255, 0.7);
+    touch-action: none;
+}
+
+.ipod-roda-luz {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, transparent 0deg, transparent 280deg, hsl(var(--matiz) 90% 60% / 0.65) 340deg, transparent 360deg);
+    -webkit-mask: radial-gradient(circle, transparent 0 37%, #000 38% 98%, transparent 99%);
+    mask: radial-gradient(circle, transparent 0 37%, #000 38% 98%, transparent 99%);
+    opacity: 0;
+    transform: rotate(var(--angulo, 0deg));
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+}
+
+.ipod.tocando .ipod-roda-luz {
+    opacity: 1;
+    animation: ipodGirarLuz 2.6s linear infinite;
+}
+
+.ipod.girando .ipod-roda-luz {
+    opacity: 1;
+    animation: none;
+}
+
+.ipod-centro {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    border: none;
+    border-radius: 50%;
+    background: linear-gradient(155deg, var(--corpo-claro), var(--corpo-medio));
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        0 1px 3px rgba(0, 0, 0, 0.25);
+    transform: translate(-50%, -50%);
+}
+
+/* ============================================================
+   Aparelho mini (cards da lista) — tamanho fixo em px
+   ============================================================ */
+.ipod-mini {
+    width: 50px;
+    height: 80px;
+    padding: 4px 4px 0;
+    border-radius: 10px;
+}
+
+.ipod-mini .ipod-tela {
+    height: 38px;
+    border-width: 1.5px;
+    border-radius: 4px;
+}
+
+.ipod-mini .ipod-capa {
+    width: 100%;
+    height: 100%;
+}
+
+.ipod-mini .ipod-nota {
+    font-size: 16px;
+}
+
+.ipod-mini-progresso {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.ipod-mini-progresso span {
+    display: block;
+    width: calc(var(--progresso, 0) * 100%);
+    height: 100%;
+    background: #ffffff;
+}
+
+.ipod.tocando .ipod-mini-progresso {
+    opacity: 1;
+}
+
+.ipod-mini .ipod-roda {
+    width: 30px;
+    height: 30px;
+    margin-top: 4px;
+}
+
+.ipod-mini .ipod-centro {
+    width: 11px;
+    height: 11px;
+}
+
+/* ============================================================
+   Aparelho grande (popup e prévia do formulário)
+   ============================================================ */
+.ipod-grande {
+    font-size: 10px;
+    width: 26em;
+    padding: 1.8em 1.8em 2.6em;
+    border-radius: 3.6em;
+    box-shadow:
+        inset 0 0.1em 0 rgba(255, 255, 255, 0.85),
+        inset 0 -0.4em 1em rgba(0, 0, 0, 0.16),
+        inset 0 0 0 0.1em rgba(255, 255, 255, 0.25),
+        0 4em 8em -3em hsl(var(--matiz) 70% 25% / 0.85);
+}
+
+.ipod-grande .ipod-tela {
+    display: flex;
+    flex-direction: column;
+    height: 19.5em;
+    border-width: 0.35em;
+    border-radius: 1.1em;
+    color: #f2f2f6;
+    font-family: var(--fonte, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+}
+
+.ipod-barra-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 2.2em;
+    padding: 0 1em;
+    background: linear-gradient(180deg, #2c2d39 0%, #1c1d27 100%);
+    border-bottom: 0.1em solid rgba(255, 255, 255, 0.08);
+    font-size: 1.05em;
+    font-weight: 600;
+}
+
+.ipod-estado {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    white-space: nowrap;
+}
+
+.ipod-estado::before {
+    content: "";
+    width: 0;
+    height: 0;
+    border-top: 0.38em solid transparent;
+    border-bottom: 0.38em solid transparent;
+    border-left: 0.6em solid #f2f2f6;
+}
+
+.ipod:not(.tocando) .ipod-estado::before {
+    width: 0.6em;
+    height: 0.75em;
+    border: none;
+    border-left: 0.2em solid #f2f2f6;
+    border-right: 0.2em solid #f2f2f6;
+}
+
+.ipod-bateria {
+    position: relative;
+    width: 2em;
+    height: 1em;
+    border: 0.12em solid rgba(255, 255, 255, 0.75);
+    border-radius: 0.25em;
+}
+
+.ipod-bateria::before {
+    content: "";
+    position: absolute;
+    inset: 0.12em;
+    right: 30%;
+    border-radius: 0.1em;
+    background: #4ade80;
+}
+
+.ipod-bateria::after {
+    content: "";
+    position: absolute;
+    top: 25%;
+    right: -0.35em;
+    width: 0.2em;
+    height: 50%;
+    border-radius: 0 0.1em 0.1em 0;
+    background: rgba(255, 255, 255, 0.75);
+}
+
+.ipod-agora {
+    display: grid;
+    grid-template-columns: 9.4em minmax(0, 1fr);
+    align-items: center;
+    gap: 1.2em;
+    flex: 1;
+    padding: 1.2em 1.2em 0.6em;
+}
+
+.ipod-agora.trocando {
+    animation: ipodTrocar 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ipod-grande .ipod-capa {
+    width: 9.4em;
+    height: 9.4em;
+    border-radius: 0.5em;
+    box-shadow: 0 0.6em 1.4em rgba(0, 0, 0, 0.55);
+}
+
+.ipod-grande .ipod-nota {
+    font-size: 3.6em;
+}
+
+.ipod-textos {
+    min-width: 0;
+}
+
+.ipod-titulo,
+.ipod-artista,
+.ipod-detalhes {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ipod-titulo {
+    font-size: 1.5em;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.ipod-artista {
+    margin-top: 0.3em;
+    font-size: 1.2em;
+    color: rgba(242, 242, 246, 0.75);
+}
+
+.ipod-detalhes {
+    margin-top: 0.4em;
+    font-size: 1.05em;
+    color: rgba(242, 242, 246, 0.5);
+}
+
+.ipod-textos .vazio {
+    color: rgba(242, 242, 246, 0.35);
+}
+
+.ipod-progresso {
+    padding: 0 1.2em 1.1em;
+}
+
+.ipod-trilho {
+    position: relative;
+    height: 0.6em;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.14);
+    overflow: hidden;
+}
+
+.ipod-trilho span {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, hsl(var(--matiz) 85% 70%), hsl(calc(var(--matiz) + 30) 85% 62%));
+    transition: width 0.25s linear;
+}
+
+.ipod.buscando .ipod-trilho span {
+    width: 35% !important;
+    animation: ipodCarregando 1.1s ease-in-out infinite;
+}
+
+.ipod-tempos {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5em;
+    font-size: 1em;
+    color: rgba(242, 242, 246, 0.6);
+    font-variant-numeric: tabular-nums;
+}
+
+.ipod-grande .ipod-roda {
+    width: 18.5em;
+    height: 18.5em;
+    margin-top: 2.8em;
+    cursor: grab;
+}
+
+.ipod-grande .ipod-roda:active {
+    cursor: grabbing;
+}
+
+.ipod-grande .ipod-centro {
+    width: 6.6em;
+    height: 6.6em;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ipod-grande .ipod-centro:active {
+    transform: translate(-50%, -50%) scale(0.94);
+    box-shadow: inset 0 0.2em 0.5em rgba(0, 0, 0, 0.2);
+}
+
+.ipod-tecla {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    width: 4.4em;
+    height: 4.4em;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: hsl(var(--matiz) 12% 62%);
+    font-family: inherit;
+    font-size: 1em;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: color 0.2s ease, transform 0.15s ease;
+}
+
+.ipod-tecla svg {
+    width: 1.8em;
+    height: 1.8em;
+}
+
+.ipod-tecla:hover {
+    color: var(--destaque-ipod);
+}
+
+.ipod-tecla:active {
+    transform: scale(0.88);
+}
+
+.ipod-tecla-menu {
+    top: 0.6em;
+    left: 50%;
+    width: 6em;
+    margin-left: -3em;
+    font-size: 1.1em;
+}
+
+.ipod-tecla-anterior {
+    top: 50%;
+    left: 0.6em;
+    margin-top: -2.2em;
+}
+
+.ipod-tecla-proxima {
+    top: 50%;
+    right: 0.6em;
+    margin-top: -2.2em;
+}
+
+.ipod-tecla-tocar {
+    bottom: 0.6em;
+    left: 50%;
+    margin-left: -2.2em;
+}
+
+.ipod-tecla-tocar svg {
+    width: 2.4em;
+}
+
+.ipod-tecla:focus-visible,
+.ipod-centro:focus-visible {
+    outline: 0.25em solid var(--destaque-ipod);
+    outline-offset: 0.15em;
+}
+
+/* ---------- Animações ---------- */
+@keyframes ipodEqualizar {
+    0%, 100% { transform: scaleY(0.3); }
+    50% { transform: scaleY(1); }
+}
+
+@keyframes ipodGirarLuz {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes ipodTrocar {
+    from { opacity: 0; transform: translateX(1.6em); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes ipodCarregando {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(300%); }
+}
+
+@keyframes aparecerCapa {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ipod.tocando .ipod-roda-luz,
+    .ipod.tocando .ipod-ondas i,
+    .ipod-agora.trocando,
+    .ipod.buscando .ipod-trilho span {
+        animation: none !important;
+    }
+}

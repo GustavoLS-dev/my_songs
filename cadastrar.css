@@ -468,205 +468,32 @@ input:focus {
 }
 
 .previa-cartao {
-    padding: 18px 18px 24px;
-    background: var(--superficie);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    padding: 28px 18px 20px;
+    background:
+        radial-gradient(circle at 50% 30%, hsl(var(--matiz) 80% 50% / 0.22), transparent 65%),
+        var(--superficie);
     border: 1px solid var(--borda);
     border-radius: 28px;
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
 }
 
-.previa-fita {
-    display: grid;
-    place-items: center;
-    margin-bottom: 20px;
-    padding: 26px 18px;
-    border-radius: 20px;
-    background:
-        radial-gradient(circle at 50% 40%, hsl(var(--matiz) 85% 55% / 0.35), transparent 70%),
-        rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--borda);
+.previa-aparelho .ipod-grande {
+    font-size: 10px;
 }
 
-.previa-fita .fita {
+.previa.tocando .previa-aparelho .ipod-grande {
+    animation: balancar 3s ease-in-out infinite;
+}
+
+.previa-info {
     width: 100%;
-    max-width: 300px;
-    height: auto;
-    filter: drop-shadow(0 24px 30px hsl(var(--matiz) 85% 40% / 0.55));
-    transition: transform 0.5s var(--curva);
-}
-
-.previa.tocando .previa-fita .fita {
-    animation: balancar 2.4s ease-in-out infinite;
-}
-
-/* ---------- Fita cassete ---------- */
-.fita {
-    --progresso: 0;
-    overflow: visible;
-    stroke: none;
-    stroke-width: 1;
-}
-
-.fita-corpo {
-    fill: hsl(var(--matiz) 70% 56%);
-    stroke: rgba(255, 255, 255, 0.28);
-    stroke-width: 1;
-}
-
-.fita-etiqueta {
-    fill: #f3efe6;
-}
-
-.fita-faixa {
-    fill: hsl(var(--matiz) 75% 60%);
-}
-
-.fita-capa {
-    animation: aparecer 0.6s ease both;
-}
-
-.fita-capa-sombra {
-    fill: rgba(0, 0, 0, 0.12);
-}
-
-.fita-com-capa .fita-texto {
-    fill: #ffffff;
-    stroke: rgba(0, 0, 0, 0.65);
-    stroke-width: 2px;
-    paint-order: stroke;
-}
-
-.fita-texto {
-    fill: hsl(var(--matiz) 45% 22%);
-    font-family: var(--fonte);
-    font-size: 7px;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-}
-
-.fita-janela {
-    fill: #0c0c13;
-}
-
-.fita-rolo {
-    fill: #3b2a20;
-    stroke: #241811;
-    stroke-width: 0.6;
-    transform-box: fill-box;
-    transform-origin: center;
-    transition: transform 0.3s linear;
-}
-
-.fita-rolo-esq {
-    transform: scale(calc(1 - var(--progresso) * 0.42));
-}
-
-.fita-rolo-dir {
-    transform: scale(calc(0.58 + var(--progresso) * 0.42));
-}
-
-.fita-bobina {
-    transform-box: fill-box;
-    transform-origin: center;
-}
-
-.fita-cubo {
-    fill: #f5f5f7;
-}
-
-.fita-raio {
-    stroke: #0c0c13;
-    stroke-width: 1.6;
-    stroke-linecap: round;
-}
-
-.fita-base {
-    fill: hsl(var(--matiz) 55% 40%);
-}
-
-.fita-furo {
-    fill: #0c0c13;
-}
-
-.previa.tocando .fita-bobina {
-    animation: girar 1.8s linear infinite;
-}
-
-/* ---------- Áudio da prévia ---------- */
-.previa-audio {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-top: 20px;
-    padding: 12px 14px 12px 12px;
-    border-radius: 18px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--borda);
-}
-
-.previa-tocar {
-    position: relative;
-    display: grid;
-    place-items: center;
-    flex-shrink: 0;
-    width: 46px;
-    height: 46px;
-    border: none;
-    border-radius: 50%;
-    background: #ffffff;
-    color: #0b0b12;
-    cursor: pointer;
-    box-shadow: 0 8px 20px -8px rgba(255, 255, 255, 0.5);
-    transition: transform 0.25s var(--curva), opacity 0.25s ease;
-}
-
-.previa-tocar:hover {
-    transform: scale(1.06);
-}
-
-.previa-tocar:active {
-    transform: scale(0.94);
-}
-
-.previa-tocar:disabled {
-    opacity: 0.25;
-    cursor: default;
-    transform: none;
-    box-shadow: none;
-}
-
-.previa-tocar svg {
-    width: 20px;
-    height: 20px;
-    fill: currentColor;
-    stroke: none;
-}
-
-.previa-tocar .icone-pausar,
-.previa.tocando .previa-tocar .icone-tocar,
-.previa-tocar .spinner,
-.previa.buscando-previa:not(.com-previa) .previa-tocar svg {
-    display: none;
-}
-
-.previa.tocando .previa-tocar .icone-pausar {
-    display: block;
-}
-
-.previa.buscando-previa:not(.com-previa) .previa-tocar .spinner {
-    display: block;
-    border-color: rgba(0, 0, 0, 0.15);
-    border-top-color: #0b0b12;
-}
-
-.previa.buscando-previa:not(.com-previa) .previa-tocar:disabled {
-    opacity: 0.6;
-}
-
-.previa-audio-info {
-    flex: 1;
     min-width: 0;
+    text-align: center;
 }
 
 .previa-audio-titulo {
@@ -678,7 +505,7 @@ input:focus {
 }
 
 .previa-audio-status {
-    margin-top: 2px;
+    margin-top: 4px;
     font-size: 13.5px;
     color: var(--texto-2);
     white-space: nowrap;
@@ -688,23 +515,6 @@ input:focus {
 
 .previa.com-previa .previa-audio-status {
     color: var(--texto);
-}
-
-.previa-audio-barra {
-    height: 3px;
-    margin-top: 8px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.1);
-    overflow: hidden;
-}
-
-.previa-audio-barra span {
-    display: block;
-    width: 0;
-    height: 100%;
-    border-radius: inherit;
-    background: hsl(var(--matiz) 90% 70%);
-    transition: width 0.25s linear;
 }
 
 /* ============ Sugestões do iTunes ============ */
@@ -753,7 +563,7 @@ input:focus {
 
 .sugestao {
     display: grid;
-    grid-template-columns: 52px minmax(0, 1fr) auto;
+    grid-template-columns: 44px minmax(0, 1fr) auto;
     align-items: center;
     gap: 12px;
     padding: 8px 12px 8px 8px;
@@ -773,10 +583,15 @@ input:focus {
     box-shadow: inset 0 0 0 1px hsl(var(--matiz) 85% 65% / 0.5);
 }
 
-.sugestao-fita .fita {
-    display: block;
-    width: 52px;
-    height: 34px;
+.sugestao-capa {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    background-color: hsl(var(--matiz) 55% 42%);
+    background-image: linear-gradient(135deg, hsl(var(--matiz) 70% 58%), hsl(calc(var(--matiz) + 40) 60% 35%));
+    background-size: cover;
+    background-position: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
 }
 
 .sugestao-texto {
@@ -810,43 +625,6 @@ input:focus {
 
 .campo.preenchido input {
     animation: preencher 0.9s ease;
-}
-
-.previa-cartao h2 {
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    overflow-wrap: anywhere;
-}
-
-.previa-artista {
-    margin-top: 4px;
-    font-size: 16px;
-    color: var(--texto-2);
-    overflow-wrap: anywhere;
-}
-
-.vazio {
-    color: var(--texto-3);
-}
-
-.previa-detalhes {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px 12px;
-    margin-top: 14px;
-    font-size: 13px;
-    color: var(--texto-3);
-    font-variant-numeric: tabular-nums;
-}
-
-.chip {
-    padding: 4px 12px;
-    border-radius: 999px;
-    background: hsl(var(--matiz) 90% 65% / 0.14);
-    color: hsl(var(--matiz) 95% 82%);
-    font-weight: 500;
 }
 
 /* ============ Toasts ============ */
@@ -989,35 +767,11 @@ input:focus {
     }
 
     .previa-cartao {
-        display: grid;
-        grid-template-columns: 120px minmax(0, 1fr);
-        align-items: center;
-        column-gap: 18px;
-        padding: 14px;
+        padding: 20px 14px 16px;
     }
 
-    .previa-fita {
-        grid-row: span 3;
-        margin-bottom: 0;
-        padding: 12px 10px;
-        border-radius: 16px;
-    }
-
-    .previa-audio {
-        grid-column: 1 / -1;
-        margin-top: 14px;
-    }
-
-    .previa-cartao h2 {
-        font-size: 18px;
-    }
-
-    .previa-artista {
-        font-size: 14px;
-    }
-
-    .previa-detalhes {
-        margin-top: 8px;
+    .previa-aparelho .ipod-grande {
+        font-size: 8px;
     }
 }
 
@@ -1040,18 +794,18 @@ input:focus {
         grid-column: span 3;
     }
 
-    .previa-cartao {
-        grid-template-columns: 96px minmax(0, 1fr);
+    .previa-aparelho .ipod-grande {
+        font-size: 7px;
     }
 
     .sugestao {
-        grid-template-columns: 44px minmax(0, 1fr) auto;
+        grid-template-columns: 40px minmax(0, 1fr) auto;
         gap: 10px;
     }
 
-    .sugestao-fita .fita {
-        width: 44px;
-        height: 29px;
+    .sugestao-capa {
+        width: 40px;
+        height: 40px;
     }
 }
 

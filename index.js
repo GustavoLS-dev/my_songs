@@ -13,7 +13,7 @@ const reduzirMovimento = window.matchMedia("(prefers-reduced-motion: reduce)").m
 
 let musicas = []
 
-const player = document.getElementById("player")
+let buscandoPrevia = false
 const audio = new Audio()
 let tocandoId = null
 
@@ -165,12 +165,12 @@ function mostrarErro() {
 
 function cartaoMusica(musica, posicao) {
     const ativa = Number(musica.id) === tocandoId
-    const estado = ativa ? (player.classList.contains("buscando") ? " buscando" : (!audio.paused ? " tocando" : "")) : ""
+    const estado = ativa ? (buscandoPrevia ? " buscando" : (!audio.paused ? " tocando" : "")) : ""
 
     return `
         <article class="musica${estado}" data-id="${Number(musica.id)}" style="--i: ${posicao}; --matiz: ${matizDoGenero(musica.genero)}">
             <button class="capa" aria-label="Tocar prévia de ${escapar(musica.titulo)}">
-                ${fitaSVG(null, capas.get(chaveDaMusica(musica)) || null)}
+                ${ipodMiniHTML(capas.get(chaveDaMusica(musica)) || null)}
                 <span class="capa-acao" aria-hidden="true">
                     <svg class="icone-tocar" viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z"/></svg>
                     <svg class="icone-pausar" viewBox="0 0 24 24"><rect x="6.5" y="5" width="4" height="14" rx="1.2"/><rect x="13.5" y="5" width="4" height="14" rx="1.2"/></svg>
@@ -241,6 +241,8 @@ function renderizarLista(animar = true) {
     if (animar) {
         listaMusicas.querySelectorAll(".musica").forEach((cartao) => cartao.classList.add("animar"))
     }
+
+    if (tocandoId) marcarEstado()
 }
 
 async function buscarMusicas() {
@@ -266,13 +268,11 @@ async function buscarMusicas() {
 
 function colocarCapaNoCartao(musica) {
     const capa = capas.get(chaveDaMusica(musica))
-    const cartao = listaMusicas.querySelector(`.musica[data-id="${Number(musica.id)}"]`)
-    const fitaAntiga = cartao?.querySelector(".capa .fita")
-    if (!capa || !fitaAntiga) return
+    const tela = listaMusicas.querySelector(`.musica[data-id="${Number(musica.id)}"] .ipod-capa`)
+    if (!capa || !tela) return
 
-    const progresso = fitaAntiga.style.getPropertyValue("--progresso")
-    fitaAntiga.outerHTML = fitaSVG(null, capa)
-    if (progresso) cartao.querySelector(".capa .fita").style.setProperty("--progresso", progresso)
+    tela.classList.add("com-capa")
+    tela.style.backgroundImage = `url("${capa}")`
 }
 
 async function carregarCapas() {
@@ -295,84 +295,186 @@ async function carregarCapas() {
 
 inputBusca.addEventListener("input", () => renderizarLista(false))
 
-/* ---------- Player (prévia de 30s do iTunes) ---------- */
+/* ---------- Tocador: popup com o aparelho + versão minimizada ---------- */
 
-const playerFita = document.getElementById("playerFita")
-const playerRotulo = document.getElementById("playerRotulo")
-const playerTitulo = document.getElementById("playerTitulo")
-const playerArtista = document.getElementById("playerArtista")
-const playerTempo = document.getElementById("playerTempo")
-const playerTotal = document.getElementById("playerTotal")
-const playerBarra = document.getElementById("playerBarra")
-const playerTocar = document.getElementById("playerTocar")
-const playerSpotify = document.getElementById("playerSpotify")
-const playerFechar = document.getElementById("playerFechar")
+const tocador = document.getElementById("tocador")
+const tocadorFundo = document.getElementById("tocadorFundo")
+const tocadorAparelho = document.getElementById("tocadorAparelho")
+const tocadorSpotify = document.getElementById("tocadorSpotify")
+const tocadorFechar = document.getElementById("tocadorFechar")
+
+const miniTocador = document.getElementById("miniTocador")
+const miniAbrir = document.getElementById("miniAbrir")
+const miniCapa = document.getElementById("miniCapa")
+const miniTitulo = document.getElementById("miniTitulo")
+const miniArtista = document.getElementById("miniArtista")
+const miniTocar = document.getElementById("miniTocar")
+const miniFechar = document.getElementById("miniFechar")
+const miniBarra = document.getElementById("miniBarra")
+
+tocadorAparelho.innerHTML = ipodGrandeHTML()
+
+const aparelho = criarIpod(tocadorAparelho, {
+    tocar: alternarTocar,
+    menu: minimizarTocador,
+    anterior: () => pularMusica(-1),
+    proxima: () => pularMusica(1),
+    girar: (graus) => avancar((graus / 360) * 15)
+})
 
 let pedidoAtual = 0
+let focoAntesDoTocador = null
 
-function marcarCartoes() {
-    const buscando = player.classList.contains("buscando")
-    const tocando = Boolean(tocandoId) && !buscando && !audio.paused
+function detalhesDaMusica(musica) {
+    return [musica.genero, musica.ano, `${musica.duracao} min`].join(" · ")
+}
+
+function marcarEstado() {
+    const tocando = Boolean(tocandoId) && !buscandoPrevia && !audio.paused
 
     listaMusicas.querySelectorAll(".musica:not(.esqueleto)").forEach((cartao) => {
         const ativa = Number(cartao.dataset.id) === tocandoId
         const titulo = cartao.querySelector("h2")?.textContent || ""
+        const mini = cartao.querySelector(".ipod")
 
-        cartao.classList.toggle("buscando", ativa && buscando)
+        cartao.classList.toggle("buscando", ativa && buscandoPrevia)
         cartao.classList.toggle("tocando", ativa && tocando)
+        mini?.classList.toggle("tocando", ativa && tocando)
+        if (!ativa) mini?.style.removeProperty("--progresso")
         cartao.querySelector(".capa")?.setAttribute("aria-label", `${ativa && tocando ? "Pausar" : "Tocar"} prévia de ${titulo}`)
-        if (!ativa) cartao.querySelector(".fita")?.style.removeProperty("--progresso")
     })
 
-    player.classList.toggle("tocando", tocando)
-    playerTocar.setAttribute("aria-label", tocando ? "Pausar" : "Tocar")
+    aparelho.tocando(tocando)
+    aparelho.buscando(buscandoPrevia)
+    miniTocador.classList.toggle("tocando", tocando)
+    miniTocar.setAttribute("aria-label", tocando ? "Pausar" : "Tocar")
+
+    if (tocandoId && !buscandoPrevia) {
+        aparelho.estado(audio.ended ? "Prévia terminada" : tocando ? "Tocando agora" : "Pausado")
+    }
 }
 
-function atualizarProgresso(atual, total) {
+function atualizarProgresso() {
+    const total = Number.isFinite(audio.duration) ? audio.duration : 30
+    const atual = audio.currentTime || 0
     const fracao = total > 0 ? Math.min(atual / total, 1) : 0
 
-    playerFita.querySelector(".fita")?.style.setProperty("--progresso", fracao)
-    listaMusicas.querySelector(`.musica[data-id="${tocandoId}"] .fita`)?.style.setProperty("--progresso", fracao)
-
-    playerBarra.value = Math.round(fracao * 1000)
-    playerBarra.style.setProperty("--preenchido", `${fracao * 100}%`)
-    playerTempo.textContent = formatarTempo(atual)
-    playerTotal.textContent = formatarTempo(total)
+    aparelho.progresso(atual, total)
+    miniBarra.style.width = `${fracao * 100}%`
+    listaMusicas.querySelector(`.musica[data-id="${tocandoId}"] .ipod`)?.style.setProperty("--progresso", fracao)
 }
 
-function abrirPlayer(musica) {
-    player.style.setProperty("--matiz", matizDoGenero(musica.genero))
-    playerFita.innerHTML = fitaSVG(rotuloDaFita(musica.titulo), capas.get(chaveDaMusica(musica)) || null)
-    playerTitulo.textContent = musica.titulo
-    playerArtista.textContent = musica.artista
-    playerSpotify.href = `https://open.spotify.com/search/${encodeURIComponent(`${musica.titulo} ${musica.artista}`)}`
-    playerSpotify.setAttribute("aria-label", `Ouvir ${musica.titulo} no Spotify`)
-    atualizarProgresso(0, 30)
-
-    player.hidden = false
-    document.body.classList.add("com-player")
+function avancar(segundos) {
+    if (!tocandoId || !Number.isFinite(audio.duration)) return
+    audio.currentTime = Math.min(Math.max(audio.currentTime + segundos, 0), audio.duration)
+    atualizarProgresso()
 }
 
-function fecharPlayer() {
+function mostrarCapaNoTocador(capa) {
+    aparelho.capa(capa)
+    miniCapa.style.backgroundImage = capa ? `url("${capa}")` : ""
+}
+
+function mostrarMusicaNoTocador(musica, trocou) {
+    const matiz = matizDoGenero(musica.genero)
+
+    tocador.style.setProperty("--matiz", matiz)
+    miniTocador.style.setProperty("--matiz", matiz)
+    aparelho.mostrar({ titulo: musica.titulo, artista: musica.artista, detalhes: detalhesDaMusica(musica), matiz })
+    mostrarCapaNoTocador(capas.get(chaveDaMusica(musica)) || null)
+    if (trocou) aparelho.trocar()
+
+    miniTitulo.textContent = musica.titulo
+    miniArtista.textContent = musica.artista
+    tocadorSpotify.href = `https://open.spotify.com/search/${encodeURIComponent(`${musica.titulo} ${musica.artista}`)}`
+    tocadorSpotify.setAttribute("aria-label", `Ouvir ${musica.titulo} completa no Spotify`)
+
+    aparelho.progresso(0, 30)
+    miniBarra.style.width = "0%"
+}
+
+function abrirTocador() {
+    if (!tocandoId) return
+
+    if (tocador.hidden || tocador.classList.contains("saindo")) {
+        focoAntesDoTocador = document.activeElement
+        tocador.classList.remove("saindo")
+        tocador.hidden = false
+    }
+
+    miniTocador.hidden = true
+    document.body.classList.remove("com-player")
+    document.body.classList.add("com-modal")
+    aparelho.centro.focus({ preventScroll: true })
+}
+
+function esconderTocador() {
+    if (tocador.hidden) return
+
+    tocador.classList.add("saindo")
+    document.body.classList.remove("com-modal")
+    setTimeout(() => {
+        if (tocador.classList.contains("saindo")) {
+            tocador.hidden = true
+            tocador.classList.remove("saindo")
+        }
+    }, reduzirMovimento ? 0 : 280)
+
+    if (focoAntesDoTocador?.isConnected) focoAntesDoTocador.focus({ preventScroll: true })
+    focoAntesDoTocador = null
+}
+
+function minimizarTocador() {
+    esconderTocador()
+    if (tocandoId) {
+        miniTocador.hidden = false
+        document.body.classList.add("com-player")
+    }
+}
+
+function pararTudo() {
     pedidoAtual++
     tocandoId = null
+    buscandoPrevia = false
     audio.pause()
     audio.removeAttribute("src")
     audio.load()
 
-    player.classList.remove("buscando", "tocando")
-    player.hidden = true
+    esconderTocador()
+    miniTocador.hidden = true
     document.body.classList.remove("com-player")
-    marcarCartoes()
+    marcarEstado()
 }
 
-async function tocarMusica(id) {
-    if (id === tocandoId && !player.classList.contains("buscando")) {
-        if (audio.paused) {
-            audio.play().catch(() => {})
-        } else {
-            audio.pause()
-        }
+function alternarTocar() {
+    if (!tocandoId || buscandoPrevia) return
+    if (audio.ended) audio.currentTime = 0
+
+    if (audio.paused) {
+        audio.play().catch(() => {})
+    } else {
+        audio.pause()
+    }
+}
+
+function pularMusica(direcao) {
+    const ids = [...listaMusicas.querySelectorAll(".musica:not(.esqueleto)")].map((cartao) => Number(cartao.dataset.id))
+    if (ids.length === 0) return
+
+    const posicao = ids.indexOf(tocandoId)
+    const destino = posicao < 0 ? ids[0] : ids[(posicao + direcao + ids.length) % ids.length]
+
+    if (destino === tocandoId) {
+        avancar(-audio.currentTime)
+        return
+    }
+
+    tocarMusica(destino, { abrir: !tocador.hidden && !tocador.classList.contains("saindo") })
+}
+
+async function tocarMusica(id, { abrir = true } = {}) {
+    if (id === tocandoId && !buscandoPrevia) {
+        alternarTocar()
         return
     }
 
@@ -380,20 +482,31 @@ async function tocarMusica(id) {
     if (!musica) return
 
     const pedido = ++pedidoAtual
+    const trocou = tocandoId !== null
+
     audio.pause()
     tocandoId = id
+    buscandoPrevia = true
 
-    abrirPlayer(musica)
-    player.classList.add("buscando")
-    playerRotulo.textContent = "Buscando prévia…"
-    marcarCartoes()
+    mostrarMusicaNoTocador(musica, trocou)
+    aparelho.estado("Buscando prévia…")
+
+    if (abrir) {
+        abrirTocador()
+    } else if (tocador.hidden) {
+        miniTocador.hidden = false
+        document.body.classList.add("com-player")
+    }
+    marcarEstado()
 
     try {
-        const faixa = await buscarPreviaDaMusica(musica)
+        /* Se a faixa já está guardada, o play() acontece ainda dentro do clique (exigência do Safari) */
+        let faixa = faixaGuardada(musica)
+        if (faixa === undefined) faixa = await buscarPreviaDaMusica(musica)
         if (pedido !== pedidoAtual) return
 
         if (!faixa) {
-            fecharPlayer()
+            pararTudo()
             mostrarToast(`Não encontrei a prévia de “${musica.titulo}”.`, "erro")
             return
         }
@@ -401,60 +514,69 @@ async function tocarMusica(id) {
         const chave = chaveDaMusica(musica)
         if (!capas.get(chave) && capaDaFaixa(faixa)) {
             capas.set(chave, capaDaFaixa(faixa))
-            playerFita.innerHTML = fitaSVG(rotuloDaFita(musica.titulo), capas.get(chave))
             colocarCapaNoCartao(musica)
+            mostrarCapaNoTocador(capas.get(chave))
         }
 
         audio.src = faixa.previewUrl
         await audio.play()
         if (pedido !== pedidoAtual) return
 
-        player.classList.remove("buscando")
-        playerRotulo.textContent = "Tocando prévia"
-        marcarCartoes()
-    } catch {
+        buscandoPrevia = false
+        marcarEstado()
+    } catch (erro) {
         if (pedido !== pedidoAtual) return
-        fecharPlayer()
+
+        /* O navegador bloqueou o som automático: deixa pausado para a pessoa apertar o play */
+        if (erro?.name === "NotAllowedError" && audio.src) {
+            buscandoPrevia = false
+            marcarEstado()
+            return
+        }
+
+        pararTudo()
         mostrarToast("Não foi possível tocar a prévia.", "erro")
     }
 }
 
-audio.addEventListener("play", () => {
-    if (!player.classList.contains("buscando")) playerRotulo.textContent = "Tocando prévia"
-    marcarCartoes()
-})
-
-audio.addEventListener("pause", () => {
-    if (tocandoId && !audio.ended && !player.classList.contains("buscando")) playerRotulo.textContent = "Pausado"
-    marcarCartoes()
-})
-
-audio.addEventListener("ended", () => {
-    playerRotulo.textContent = "Prévia terminada"
-    marcarCartoes()
-})
-
+audio.addEventListener("play", marcarEstado)
+audio.addEventListener("pause", marcarEstado)
+audio.addEventListener("ended", marcarEstado)
 audio.addEventListener("timeupdate", () => {
-    if (tocandoId) atualizarProgresso(audio.currentTime, audio.duration || 30)
+    if (tocandoId) atualizarProgresso()
 })
 
-playerTocar.addEventListener("click", () => {
-    if (!tocandoId) return
-    if (audio.ended) audio.currentTime = 0
-    if (audio.paused) {
-        audio.play().catch(() => {})
-    } else {
-        audio.pause()
+/* Teclado dentro do popup: Esc minimiza, setas avançam, espaço pausa, Tab fica preso no popup */
+tocador.addEventListener("keydown", (evento) => {
+    if (evento.key === "Escape") {
+        evento.preventDefault()
+        minimizarTocador()
+    } else if ((evento.key === "ArrowLeft" || evento.key === "ArrowRight") && !evento.target.closest("a")) {
+        evento.preventDefault()
+        avancar(evento.key === "ArrowRight" ? 5 : -5)
+    } else if (evento.key === " " && !evento.target.closest("button, a")) {
+        evento.preventDefault()
+        alternarTocar()
+    } else if (evento.key === "Tab") {
+        const focaveis = [...tocador.querySelectorAll("button, a[href]")]
+        const primeiro = focaveis[0]
+        const ultimo = focaveis[focaveis.length - 1]
+
+        if (evento.shiftKey && document.activeElement === primeiro) {
+            evento.preventDefault()
+            ultimo.focus()
+        } else if (!evento.shiftKey && document.activeElement === ultimo) {
+            evento.preventDefault()
+            primeiro.focus()
+        }
     }
 })
 
-playerBarra.addEventListener("input", () => {
-    if (Number.isFinite(audio.duration)) {
-        audio.currentTime = (playerBarra.value / 1000) * audio.duration
-    }
-})
-
-playerFechar.addEventListener("click", fecharPlayer)
+tocadorFundo.addEventListener("click", minimizarTocador)
+tocadorFechar.addEventListener("click", pararTudo)
+miniAbrir.addEventListener("click", abrirTocador)
+miniTocar.addEventListener("click", alternarTocar)
+miniFechar.addEventListener("click", pararTudo)
 
 listaMusicas.addEventListener("click", (evento) => {
     if (evento.target.closest(".acoes, a, input")) return
@@ -518,7 +640,7 @@ async function confirmarApagar(id, cartao, acoesOriginais) {
 
         const respostaTransformada = await resposta.json()
 
-        if (id === tocandoId) fecharPlayer()
+        if (id === tocandoId) pararTudo()
 
         cartao.classList.add("removendo")
         await esperarAnimacao(cartao, 420)
